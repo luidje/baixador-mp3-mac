@@ -26,7 +26,7 @@ if not video_url:
 
 # 2. Define as opcoes de download
 ydl_opts = {
-    'outtmpl': '%(title)s.mp3',
+    'outtmpl': '%(title)s',
     'format': 'bestaudio/best',
 
     'postprocessors': [{
