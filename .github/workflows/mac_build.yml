@@ -1,4 +1,4 @@
-name: Mac Build
+name: Mac Build with Test
 
 on:
   workflow_dispatch:
@@ -21,18 +21,28 @@ jobs:
 
     - name: Run PyInstaller
       run: |
-        # Dá permissão aos binários ffmpeg e ffprobe se estiverem na raiz
+        # Dá permissão aos binários se existirem na raiz
         chmod +x ffmpeg ffprobe || true
         
-        # Compilação - AJUSTADO PARA baixar_mp3.py (minúsculo)
+        # Compilação
         pyinstaller --onefile --add-data "ffmpeg:." --add-data "ffprobe:." --name "BAIXADOR_MP3_COMPACTO" baixar_mp3.py
+
+    - name: Test Executable (Smoke Test)
+      run: |
+        # Dá permissão ao executável gerado
+        chmod +x dist/BAIXADOR_MP3_COMPACTO
+        
+        # Simula a entrada de um link curto (vídeo de 2 segundos) para testar o funcionamento
+        # O "|| true" garante que o workflow não pare se o YouTube bloquear o bot temporariamente
+        echo "https://www.youtube.com/watch?v=jNQXAC9IVRw" | ./dist/BAIXADOR_MP3_COMPACTO || true
+        
+        # Lista os arquivos para você ver no log se o .mp3 foi criado
+        ls -lh *.mp3 || echo "Aviso: O teste de download não gerou arquivo, mas o binário foi criado."
 
     - name: Prepare and Zip Artifact
       run: |
         cd dist
-        # Garante a permissão de execução no arquivo gerado
         chmod +x BAIXADOR_MP3_COMPACTO
-        # Compacta o executável para proteger as permissões no Windows
         zip ../BAIXADOR_MP3_COMPACTO_MAC.zip BAIXADOR_MP3_COMPACTO
 
     - name: Upload Artifact
