@@ -1,34 +1,23 @@
-name: Mac Build
-
-on:
-  workflow_dispatch:
-
-jobs:
-  build-mac:
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x' 
-
-    - name: Install dependencies
+- name: Run PyInstaller
       run: |
-        python -m pip install --upgrade pip
-        pip install yt-dlp pyinstaller
-
-    - name: Run PyInstaller
-      run: |
-        # Comando para dar permissao de execucao aos binarios
+        # Garante que os binários locais tenham permissão antes de serem embutidos
         chmod +x ffmpeg ffprobe
-
-        # Compilacao em arquivo unico (onefile) com os binarios como dados
+        
+        # Compilação
         pyinstaller --onefile --add-data "ffmpeg:." --add-data "ffprobe:." --name "BAIXADOR_MP3_COMPACTO" Baixar_mp3.py
+
+    - name: Prepare and Zip Artifact
+      run: |
+        # Entra na pasta de saída
+        cd dist
+        # Garante que o executável gerado tenha permissão de execução
+        chmod +x BAIXADOR_MP3_COMPACTO
+        # Compacta em ZIP mantendo os atributos de sistema do Unix/Mac
+        zip -r ../BAIXADOR_MP3_COMPACTO_MAC.zip BAIXADOR_MP3_COMPACTO
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: BAIXADOR_MP3_COMPACTO_MAC
-        path: dist/BAIXADOR_MP3_COMPACTO
+        # Agora enviamos o ZIP, que protege o arquivo contra o "corrompimento" do Windows
+        path: BAIXADOR_MP3_COMPACTO_MAC.zip
